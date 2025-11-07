@@ -21,10 +21,6 @@ export const App = () => {
     )
   }
 
-  if (!user) {
-    return <div>User not found</div>
-  }
-
   return (
     <RouterProvider
       router={router}

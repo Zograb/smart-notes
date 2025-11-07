@@ -159,6 +159,9 @@ importers:
       '@clerk/clerk-react':
         specifier: ^5.53.3
         version: 5.53.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@graphql-typed-document-node/core':
+        specifier: ^3.2.0
+        version: 3.2.0(graphql@16.11.0)
       '@tailwindcss/vite':
         specifier: ^4.1.14
         version: 4.1.14(rolldown-vite@7.1.14(@types/node@24.7.2)(esbuild@0.25.11)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.6))(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))

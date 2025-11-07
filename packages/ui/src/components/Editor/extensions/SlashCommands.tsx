@@ -7,7 +7,7 @@ import {
   shift,
 } from '@floating-ui/dom'
 import { type Editor, ReactRenderer, Extension } from '@tiptap/react'
-import Suggestion, { SuggestionProps } from '@tiptap/suggestion'
+import Suggestion, { type SuggestionProps } from '@tiptap/suggestion'
 import {
   Code,
   Heading1,
