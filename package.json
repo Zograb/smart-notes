@@ -7,7 +7,7 @@
     "lint": "turbo run lint",
     "seed": "pnpm --filter @nexly/db seed",
     "migrate": "pnpm --filter @nexly/db prisma:migrate",
-    "generate": "pnpm --filter @nexly/db prisma:generate",
+    "generate": "pnpm --filter @nexly/db prisma:generate && pnpm --filter api generate:schema && pnpm --filter web generate",
     "studio": "pnpm --filter @nexly/db prisma:studio",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
