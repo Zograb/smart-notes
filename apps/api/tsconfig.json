@@ -8,6 +8,6 @@
       "src/*": ["src/*"],
     }
   },
-  "include": ["src/**/*", "graphql/**/*"],
+  "include": ["src/**/*", "graphql/**/*", "scripts/**/*"],
   "exclude": ["node_modules"]
 }
