@@ -12,7 +12,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "docker:dev": "docker-compose -f docker-compose.yml up",
-    "prepare": "husky"
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
+    "docker:build": "docker build -t nexly-api:latest -f Dockerfile .",
+    "docker:test": "bash scripts/test-docker.sh"
   },
   "devDependencies": {
     "husky": "^9.1.7",

@@ -1,0 +1,86 @@
+name: Deploy API to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/**'
+      - 'packages/db/**'
+      - 'Dockerfile'
+      - '.github/workflows/deploy-api-gcp.yml'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SERVICE_NAME: nexly-api
+  REGION: us-central1
+  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nexly-api
+
+jobs:
+  deploy:
+    name: Build & Deploy API to Google Cloud Run
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker
+      
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+                       -t ${{ env.IMAGE_NAME }}:latest \
+                       -f Dockerfile .
+      
+      - name: Push Docker image to GCR
+        run: |
+          docker push ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_NAME }}:latest
+      
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 3001 \
+            --memory 1Gi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 10 \
+            --timeout 300 \
+            --no-cpu-throttling \
+            --service-account=nexly-api-runtime@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+            --set-env-vars="NODE_ENV=production" \
+            --set-secrets="DATABASE_URL=DATABASE_URL:latest" \
+            --set-secrets="CLERK_SECRET_KEY=CLERK_SECRET_KEY:latest" \
+            --set-secrets="CLERK_PUBLISHABLE_KEY=CLERK_PUBLISHABLE_KEY:latest"
+      
+      - name: Get Cloud Run URL
+        run: |
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)')
+          echo "Service deployed to: $SERVICE_URL"
+          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
+
+
+

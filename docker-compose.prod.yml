@@ -1,0 +1,63 @@
+# Production-like Docker Compose setup for local testing
+name: nexly-prod
+
+services:
+  postgres:
+    image: postgres:18-bookworm
+    container_name: nexly-db-prod
+    restart: unless-stopped
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_DB: nexly-db
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d nexly-db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nexly-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexly-api-prod
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexly-db
+      # Add your Clerk keys here or use .env file
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nexly-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      start_period: 40s
+      retries: 3
+
+volumes:
+  pgdata-prod:
+    driver: local
+
+networks:
+  nexly-network:
+    driver: bridge
+
+
+
+
